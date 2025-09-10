@@ -4,27 +4,9 @@
 <meta charset="UTF-8">
 <title>Smart Attendance System</title>
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
-<!-- Firebase v9 CDN -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-  import { getDatabase, ref, set, get, update, onValue, remove } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyCI37gCUH4LvAH33bBly2bqA32Y0_0uaXE",
-    authDomain: "smart-7c964.firebaseapp.com",
-    databaseURL: "https://smart-7c964-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "smart-7c964",
-    storageBucket: "smart-7c964.firebasestorage.app",
-    messagingSenderId: "22399720510",
-    appId: "1:22399720510:web:a91e5bf63f0172ad48456f"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-
-  window.db = db; 
-  window.fns = { ref, set, get, update, onValue, remove };
-</script>
+<!-- Firebase v9 compat -->
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
 <style>
 body {font-family:"Segoe UI",sans-serif; background:linear-gradient(135deg,#eef2f7,#dfe9f3); margin:0; padding:20px; text-align:center;}
@@ -79,15 +61,28 @@ input{width:90%;padding:12px;margin:12px 0;border:1px solid #ccc;border-radius:6
 <button onclick="markAttendance()">Submit</button>
 </div>
 
-<script type="module">
-import {db, fns} from window;
-const { ref, set, get, update, onValue, remove } = fns;
+<script>
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyCI37gCUH4LvAH33bBly2bqA32Y0_0uaXE",
+  authDomain: "smart-7c964.firebaseapp.com",
+  databaseURL: "https://smart-7c964-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "smart-7c964",
+  storageBucket: "smart-7c964.appspot.com",
+  messagingSenderId: "22399720510",
+  appId: "1:22399720510:web:a91e5bf63f0172ad48456f"
+};
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
 const params = new URLSearchParams(window.location.search);
 const mode = params.get("mode");
 if(mode==="student") document.getElementById("student-view").style.display="block";
 if(mode==="teacher") document.getElementById("teacher-view").style.display="block";
 
-// QR
+// QR code
 const studentLink = window.location.origin + window.location.pathname + "?mode=student";
 function generateQR(){
   document.getElementById("qrcode").innerHTML="";
@@ -95,33 +90,34 @@ function generateQR(){
 }
 if(mode==="teacher") generateQR();
 
-// Attendance functions
-window.markAttendance = async function(){
+// Student submit
+async function markAttendance(){
   const name = document.getElementById("name").value.trim();
   const roll = document.getElementById("roll").value.trim();
   if(!name || !roll){alert("❌ Fill all details"); return;}
-  const studentRef = ref(db,"attendance/"+roll);
+  const studentRef = db.ref("attendance/"+roll);
+  const snap = await studentRef.once("value");
   const now = Date.now();
-  const snap = await get(studentRef);
 
   if(!snap.exists()){
-    await set(studentRef,{name, roll, entry: now, exit: "", status:"Pending"});
+    await studentRef.set({name, roll, entry: now, exit: "", status:"Pending"});
     alert("✅ Entry Recorded");
   } else if(!snap.val().exit){
-    await update(studentRef,{exit: now, status:"Present"});
+    await studentRef.update({exit: now, status:"Present"});
     alert("✅ Exit Recorded, Present");
   } else {
     alert("ℹ Already Submitted");
   }
+
   document.getElementById("name").value="";
   document.getElementById("roll").value="";
-};
+}
 
 // Teacher table
 if(mode==="teacher"){
   const tbody = document.querySelector("#attendance-table tbody");
-  const attendanceRef = ref(db,"attendance");
-  onValue(attendanceRef,(snapshot)=>{
+  const attendanceRef = db.ref("attendance");
+  attendanceRef.on("value",(snapshot)=>{
     tbody.innerHTML="";
     snapshot.forEach(child=>{
       const s = child.val();
@@ -133,23 +129,24 @@ if(mode==="teacher"){
   });
 
   // Auto absent after 1 hour
-  setInterval(async ()=>{
-    const snap = await get(attendanceRef);
-    snap.forEach(child=>{
-      const s = child.val();
-      if(s.status==="Pending" && Date.now()-s.entry>3600000){
-        update(ref(db,"attendance/"+s.roll),{status:"Absent"});
-      }
+  setInterval(()=>{
+    attendanceRef.once("value").then(snap=>{
+      snap.forEach(child=>{
+        const s = child.val();
+        if(s.status==="Pending" && Date.now()-s.entry>3600000){
+          db.ref("attendance/"+s.roll).update({status:"Absent"});
+        }
+      });
     });
   },60000);
 }
 
-// Clear
-window.clearRecords = function(){
+// Clear records
+function clearRecords(){
   if(confirm("⚠ Clear all records?")){
-    remove(ref(db,"attendance"));
+    db.ref("attendance").remove();
   }
-};
+}
 </script>
 
 </body>
