@@ -3,30 +3,27 @@
 <head>
 <meta charset="UTF-8">
 <title>Smart Attendance System</title>
-<script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
-<!-- Firebase v9 compat -->
+<!-- Firebase Compat CDN -->
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
 <style>
-body {font-family:"Segoe UI",sans-serif; background:linear-gradient(135deg,#eef2f7,#dfe9f3); margin:0; padding:20px; text-align:center;}
-h1,h2{margin-bottom:10px;color:#222;}
-.card{background:white;border-radius:14px;padding:25px;box-shadow:0 6px 20px rgba(0,0,0,0.1);margin:25px auto;width:90%;max-width:1000px;}
+body {font-family:"Segoe UI",sans-serif;background:#eef2f7;margin:0;padding:20px;text-align:center;color:#333;}
+h1{margin-bottom:10px;color:#222;} h2{margin-bottom:15px;color:#111;}
+.card{background:white;border-radius:14px;padding:25px;box-shadow:0 6px 20px rgba(0,0,0,0.1);margin:25px auto;width:90%;max-width:900px;}
 .qr-container{display:flex;justify-content:center;align-items:center;gap:25px;margin:25px auto;}
 #qrcode{padding:15px;background:white;border-radius:12px;box-shadow:0 0 15px rgba(0,0,0,0.15);}
 button{padding:12px 20px;background:#2563eb;color:white;font-size:15px;border:none;border-radius:8px;cursor:pointer;transition:0.3s;}
 button:hover{background:#1d4ed8;}
 button.clear-btn{background:#e11d48;} button.clear-btn:hover{background:#b91c1c;}
 table{width:100%;border-collapse:collapse;background:white;border-radius:10px;overflow:hidden;margin-top:20px;}
-th,td{padding:14px;text-align:center;border-bottom:1px solid #eee;}
-th{background:#2563eb;color:white;}
+th,td{padding:14px;text-align:center;border-bottom:1px solid #eee;} th{background:#2563eb;color:white;}
 tr:hover td{background:#f9faff;}
-.tick{color:green;font-weight:bold;}
-.cross{color:red;font-weight:bold;}
+.tick{color:green;font-weight:bold;} .cross{color:red;font-weight:bold;}
 .entry-badge{color:white;background:#16a34a;padding:5px 10px;border-radius:8px;font-weight:bold;}
 .exit-badge{color:white;background:#10b981;padding:5px 10px;border-radius:8px;font-weight:bold;}
 .absent-badge{color:white;background:#ef4444;padding:5px 10px;border-radius:8px;font-weight:bold;}
-.form-container{margin-top:30px;background:white;padding:25px;border-radius:12px;width:350px;margin:auto;box-shadow:0 4px 15px rgba(0,0,0,0.1);}
+.form-container{margin-top:30px;background:white;padding:25px;border-radius:12px;width:350px;margin-left:auto;margin-right:auto;box-shadow:0 4px 15px rgba(0,0,0,0.1);}
 input{width:90%;padding:12px;margin:12px 0;border:1px solid #ccc;border-radius:6px;font-size:14px;}
 @media screen and (max-width:500px){.qr-container{flex-direction:column;gap:15px;}.form-container{width:90%;}}
 </style>
@@ -35,25 +32,31 @@ input{width:90%;padding:12px;margin:12px 0;border:1px solid #ccc;border-radius:6
 
 <h1>📌 Smart Attendance System</h1>
 
-<div id="teacher-view" class="card" style="display:none;">
+<!-- TEACHER DASHBOARD -->
+<div id="teacher-view" class="card">
 <h2>Teacher Dashboard</h2>
 <div class="qr-container">
 <div id="qrcode"></div>
 <div>
 <button onclick="generateQR()">🔄 Generate QR</button><br><br>
-<button onclick="clearRecords()" class="clear-btn">🗑 Clear Records</button>
+<button class="clear-btn" onclick="clearRecords()">🗑 Clear Records</button>
 </div>
 </div>
 <table id="attendance-table">
 <thead>
 <tr>
-<th>Name</th><th>Roll No</th><th>Entry</th><th>Exit</th><th>Status</th>
+<th>Name</th>
+<th>Roll No</th>
+<th>Entry</th>
+<th>Exit</th>
+<th>Attendance</th>
 </tr>
 </thead>
 <tbody></tbody>
 </table>
 </div>
 
+<!-- STUDENT FORM -->
 <div id="student-view" class="form-container" style="display:none;">
 <h2>Attendance Form</h2>
 <input type="text" id="name" placeholder="Enter Name"><br>
@@ -62,7 +65,6 @@ input{width:90%;padding:12px;margin:12px 0;border:1px solid #ccc;border-radius:6
 </div>
 
 <script>
-// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCI37gCUH4LvAH33bBly2bqA32Y0_0uaXE",
   authDomain: "smart-7c964.firebaseapp.com",
@@ -72,79 +74,87 @@ const firebaseConfig = {
   messagingSenderId: "22399720510",
   appId: "1:22399720510:web:a91e5bf63f0172ad48456f"
 };
-
-// Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-const params = new URLSearchParams(window.location.search);
-const mode = params.get("mode");
-if(mode==="student") document.getElementById("student-view").style.display="block";
-if(mode==="teacher") document.getElementById("teacher-view").style.display="block";
-
-// QR code
-const studentLink = window.location.origin + window.location.pathname + "?mode=student";
+// QR Code
+const studentLink = "https://mouryaumesh052005-bit.github.io/smart-attendence/?mode=student";
 function generateQR(){
   document.getElementById("qrcode").innerHTML="";
-  new QRCode(document.getElementById("qrcode"), {text:studentLink, width:200, height:200});
+  new QRCode(document.getElementById("qrcode"),{
+    text: studentLink,
+    width:200,
+    height:200
+  });
 }
-if(mode==="teacher") generateQR();
+generateQR();
 
-// Student submit
-async function markAttendance(){
-  const name = document.getElementById("name").value.trim();
-  const roll = document.getElementById("roll").value.trim();
-  if(!name || !roll){alert("❌ Fill all details"); return;}
-  const studentRef = db.ref("attendance/"+roll);
-  const snap = await studentRef.once("value");
-  const now = Date.now();
-
-  if(!snap.exists()){
-    await studentRef.set({name, roll, entry: now, exit: "", status:"Pending"});
-    alert("✅ Entry Recorded");
-  } else if(!snap.val().exit){
-    await studentRef.update({exit: now, status:"Present"});
-    alert("✅ Exit Recorded, Present");
-  } else {
-    alert("ℹ Already Submitted");
-  }
-
-  document.getElementById("name").value="";
-  document.getElementById("roll").value="";
+// Detect student mode
+const params = new URLSearchParams(window.location.search);
+if(params.get("mode")==="student"){
+  document.getElementById("teacher-view").style.display="none";
+  document.getElementById("student-view").style.display="block";
 }
 
-// Teacher table
-if(mode==="teacher"){
-  const tbody = document.querySelector("#attendance-table tbody");
-  const attendanceRef = db.ref("attendance");
-  attendanceRef.on("value",(snapshot)=>{
-    tbody.innerHTML="";
-    snapshot.forEach(child=>{
-      const s = child.val();
-      const entryBadge = s.entry ? `<span class="entry-badge">✔ ${new Date(s.entry).toLocaleTimeString()}</span>` : `<span class="absent-badge">✖</span>`;
-      const exitBadge = s.exit ? `<span class="exit-badge">✔ ${new Date(s.exit).toLocaleTimeString()}</span>` : `<span class="absent-badge">✖</span>`;
-      const statusBadge = s.status==="Present"?`<span class="tick">✔ Present</span>`:s.status==="Pending"?`<span class="cross">⌛ Pending</span>`:`<span class="cross">✖ Absent</span>`;
-      tbody.innerHTML+=`<tr><td>${s.name}</td><td>${s.roll}</td><td>${entryBadge}</td><td>${exitBadge}</td><td>${statusBadge}</td></tr>`;
+// Load attendance for teacher
+function loadAttendance(){
+  if(params.get("mode")==="student") return;
+  db.ref("attendance").once("value", snapshot => {
+    const attendance = snapshot.val() || {};
+    const tbody = document.querySelector("#attendance-table tbody");
+    tbody.innerHTML = "";
+    Object.values(attendance).forEach(s=>{
+      const entryBadge = s.entry ? `<span class="entry-badge">✔ ${s.entry}</span>` : `<span class="absent-badge">✖</span>`;
+      const exitBadge = s.exit ? `<span class="exit-badge">✔ ${s.exit}</span>` : `<span class="absent-badge">✖</span>`;
+      const statusBadge = s.status==="Present" ? `<span class="tick">✔ Present</span>` : `<span class="cross">✖ Absent</span>`;
+      tbody.innerHTML += `<tr>
+        <td>${s.name}</td>
+        <td>${s.roll}</td>
+        <td>${entryBadge}</td>
+        <td>${exitBadge}</td>
+        <td>${statusBadge}</td>
+      </tr>`;
     });
   });
+}
+loadAttendance();
+if(!params.get("mode")) setInterval(loadAttendance,2000);
 
-  // Auto absent after 1 hour
-  setInterval(()=>{
-    attendanceRef.once("value").then(snap=>{
-      snap.forEach(child=>{
-        const s = child.val();
-        if(s.status==="Pending" && Date.now()-s.entry>3600000){
-          db.ref("attendance/"+s.roll).update({status:"Absent"});
-        }
-      });
-    });
-  },60000);
+// Mark attendance
+function markAttendance(){
+  const name = document.getElementById("name").value.trim();
+  const roll = document.getElementById("roll").value.trim();
+  if(!name || !roll){ alert("❌ Fill all details"); return; }
+  const time = new Date().toLocaleTimeString();
+  const timestamp = Date.now();
+  const studentRef = db.ref("attendance/"+roll);
+
+  studentRef.once("value").then(snapshot=>{
+    const data = snapshot.val();
+    let message = "";
+    if(!data){
+      // Entry
+      studentRef.set({name, roll, entry:time, exit:"", status:"Absent", lastScan:timestamp});
+      message = "✅ Entry Successful";
+    } else if(!data.exit){
+      // Exit
+      studentRef.update({exit:time, status:"Present", lastScan:timestamp});
+      message = "✅ Exit Successful";
+    } else {
+      message = "ℹ Already Submitted";
+    }
+    alert(message);
+    document.getElementById("name").value="";
+    document.getElementById("roll").value="";
+    loadAttendance();
+  });
 }
 
 // Clear records
 function clearRecords(){
   if(confirm("⚠ Clear all records?")){
     db.ref("attendance").remove();
+    loadAttendance();
   }
 }
 </script>
