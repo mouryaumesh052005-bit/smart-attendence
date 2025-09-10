@@ -8,7 +8,7 @@
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
 <style>
 body {font-family:"Segoe UI",sans-serif;background:linear-gradient(135deg,#eef2f7,#dfe9f3);margin:0;padding:20px;color:#333;}
-h1,h2{margin:10px 0;text-align:center;}
+h1,h2{text-align:center;}
 .card{background:white;border-radius:14px;padding:25px;box-shadow:0 6px 20px rgba(0,0,0,0.1);margin:20px auto;max-width:1000px;}
 .qr-container{display:flex;justify-content:center;align-items:center;gap:25px;margin-bottom:20px;}
 #qrcode{padding:15px;background:white;border-radius:12px;box-shadow:0 0 15px rgba(0,0,0,0.15);}
@@ -102,7 +102,6 @@ function loadAttendance(){
     tbody.innerHTML = "";
     const now = Date.now();
     Object.values(data).forEach(s=>{
-      // Auto mark absent if >1 hour
       if(!s.exit && s.entryTime && now - s.entryTime > 3600000){
         s.status="Absent";
         db.ref("attendance/"+s.roll).update({status:"Absent"});
@@ -136,9 +135,11 @@ function markAttendance(){
     const data = snapshot.val();
     let message = "";
     if(!data){
+      // First time → entry pending
       studentRef.set({name, roll, entry:time, entryTime:timestamp, exit:"", status:"Pending"});
       message = "✅ Entry Recorded, Attendance Pending";
     } else if(!data.exit){
+      // Second time → exit + present
       studentRef.update({exit:time, status:"Present"});
       message = "✅ Exit Recorded, Attendance Present";
     } else {
