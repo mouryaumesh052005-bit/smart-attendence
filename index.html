@@ -103,16 +103,23 @@ function loadAttendance(){
     const attendance = snapshot.val() || {};
     const tbody = document.querySelector("#attendance-table tbody");
     tbody.innerHTML = "";
+    const now = Date.now();
     Object.values(attendance).forEach(s=>{
+      // Auto mark absent if >1 hour
+      let statusBadge = s.status;
+      if(!s.exit && s.entryTime && now - s.entryTime > 3600000){
+        s.status="Absent";
+        db.ref("attendance/"+s.roll).update({status:"Absent"});
+      }
       const entryBadge = s.entry ? `<span class="entry-badge">✔ ${s.entry}</span>` : `<span class="absent-badge">✖</span>`;
       const exitBadge = s.exit ? `<span class="exit-badge">✔ ${s.exit}</span>` : `<span class="absent-badge">✖</span>`;
-      const statusBadge = s.status==="Present" ? `<span class="tick">✔ Present</span>` : `<span class="cross">✖ Absent</span>`;
+      const statusHTML = s.status==="Present" ? `<span class="tick">✔ Present</span>` : `<span class="cross">✖ Absent</span>`;
       tbody.innerHTML += `<tr>
         <td>${s.name}</td>
         <td>${s.roll}</td>
         <td>${entryBadge}</td>
         <td>${exitBadge}</td>
-        <td>${statusBadge}</td>
+        <td>${statusHTML}</td>
       </tr>`;
     });
   });
@@ -134,11 +141,11 @@ function markAttendance(){
     let message = "";
     if(!data){
       // Entry
-      studentRef.set({name, roll, entry:time, exit:"", status:"Absent", lastScan:timestamp});
+      studentRef.set({name, roll, entry:time, entryTime:timestamp, exit:"", status:"Absent"});
       message = "✅ Entry Successful";
     } else if(!data.exit){
       // Exit
-      studentRef.update({exit:time, status:"Present", lastScan:timestamp});
+      studentRef.update({exit:time, status:"Present"});
       message = "✅ Exit Successful";
     } else {
       message = "ℹ Already Submitted";
