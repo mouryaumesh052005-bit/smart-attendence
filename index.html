@@ -4,15 +4,34 @@
 <meta charset="UTF-8">
 <title>Smart Attendance System</title>
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
-<!-- Firebase CDN v8 style -->
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js"></script>
+<!-- Firebase v9 CDN -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+  import { getDatabase, ref, set, get, update, onValue, remove } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+
+  // Firebase Config
+  const firebaseConfig = {
+    apiKey: "AIzaSyCI37gCUH4LvAH33bBly2bqA32Y0_0uaXE",
+    authDomain: "smart-7c964.firebaseapp.com",
+    databaseURL: "https://smart-7c964-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "smart-7c964",
+    storageBucket: "smart-7c964.firebasestorage.app",
+    messagingSenderId: "22399720510",
+    appId: "1:22399720510:web:a91e5bf63f0172ad48456f"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  window.firebaseDB = db; // Make global for HTML buttons
+  window.firebaseRefs = {ref, set, get, update, onValue, remove};
+</script>
 
 <style>
 body {font-family:"Segoe UI", sans-serif; background:linear-gradient(135deg,#eef2f7,#dfe9f3); margin:0; padding:20px; text-align:center; color:#333;}
 h1{margin-bottom:10px;color:#222;}
 h2{margin-bottom:15px;color:#111;}
-.card{background:white;border-radius:14px;padding:25px;box-shadow:0 6px 20px rgba(0,0,0,0.1);margin:25px auto;width:90%;max-width:900px;}
+.card{background:white;border-radius:14px;padding:25px;box-shadow:0 6px 20px rgba(0,0,0,0.1);margin:25px auto;width:90%;max-width:1000px;}
 .qr-container{display:flex;justify-content:center;align-items:center;gap:25px;margin:25px auto;}
 #qrcode{padding:15px;background:white;border-radius:12px;box-shadow:0 0 15px rgba(0,0,0,0.15);}
 button{padding:12px 20px;background:#2563eb;color:white;font-size:15px;border:none;border-radius:8px;cursor:pointer;transition:0.3s;}
@@ -37,17 +56,15 @@ input{width:90%;padding:12px;margin:12px 0;border:1px solid #ccc;border-radius:6
 
 <h1>📌 Smart Attendance System</h1>
 
-<!-- TEACHER DASHBOARD -->
 <div id="teacher-view" class="card" style="display:none;">
 <h2>Teacher Dashboard</h2>
 <div class="qr-container">
 <div id="qrcode"></div>
 <div>
 <button onclick="generateQR()">🔄 Generate QR</button><br><br>
-<button class="clear-btn" onclick="clearRecords()">🗑 Clear Records</button>
+<button onclick="clearRecords()" class="clear-btn">🗑 Clear Records</button>
 </div>
 </div>
-
 <table id="attendance-table">
 <thead>
 <tr>
@@ -62,7 +79,6 @@ input{width:90%;padding:12px;margin:12px 0;border:1px solid #ccc;border-radius:6
 </table>
 </div>
 
-<!-- STUDENT FORM -->
 <div id="student-view" class="form-container" style="display:none;">
 <h2>Attendance Form</h2>
 <input type="text" id="name" placeholder="Enter Name"><br>
@@ -70,99 +86,81 @@ input{width:90%;padding:12px;margin:12px 0;border:1px solid #ccc;border-radius:6
 <button onclick="markAttendance()">Submit</button>
 </div>
 
-<script>
-  // Firebase Config
-  var firebaseConfig = {
-    apiKey: "AIzaSyCI37gCUH4LvAH33bBly2bqA32Y0_0uaXE",
-    authDomain: "smart-7c964.firebaseapp.com",
-    databaseURL: "https://smart-7c964-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "smart-7c964",
-    storageBucket: "smart-7c964.firebasestorage.app",
-    messagingSenderId: "22399720510",
-    appId: "1:22399720510:web:a91e5bf63f0172ad48456f"
-  };
-  firebase.initializeApp(firebaseConfig);
-  var db = firebase.database();
+<script type="module">
+import {firebaseDB as db, firebaseRefs as f} from window;
 
-  // Detect mode
-  const params = new URLSearchParams(window.location.search);
-  const mode = params.get("mode");
-  if(mode==="student") document.getElementById("student-view").style.display="block";
-  if(mode==="teacher") document.getElementById("teacher-view").style.display="block";
+const {ref,set,get,update,onValue,remove} = f;
 
-  // QR Code
-  const studentLink = window.location.origin + window.location.pathname + "?mode=student";
-  function generateQR(){
-    document.getElementById("qrcode").innerHTML="";
-    new QRCode(document.getElementById("qrcode"), {text: studentLink, width:200, height:200});
+// Detect mode
+const params = new URLSearchParams(window.location.search);
+const mode = params.get("mode");
+if(mode==="student") document.getElementById("student-view").style.display="block";
+if(mode==="teacher") document.getElementById("teacher-view").style.display="block";
+
+// QR Code
+const studentLink = window.location.origin + window.location.pathname + "?mode=student";
+function generateQR(){
+  document.getElementById("qrcode").innerHTML="";
+  new QRCode(document.getElementById("qrcode"), { text: studentLink, width:200, height:200 });
+}
+if(mode==="teacher") generateQR();
+
+// Attendance
+window.markAttendance = async function(){
+  const name = document.getElementById("name").value.trim();
+  const roll = document.getElementById("roll").value.trim();
+  if(!name || !roll){alert("❌ Fill all details"); return;}
+  const studentRef = ref(db,"attendance/"+roll);
+  const now = Date.now();
+
+  const snap = await get(studentRef);
+  if(!snap.exists()){
+    await set(studentRef,{name, roll, entry: now, exit: "", status:"Pending"});
+    alert("✅ Entry Recorded");
+  } else if(!snap.val().exit){
+    await update(studentRef,{exit: now, status:"Present"});
+    alert("✅ Exit Recorded, Present");
+  } else {
+    alert("ℹ Already Submitted");
   }
-  if(mode==="teacher") generateQR();
 
-  // Attendance
-  function markAttendance(){
-    const name = document.getElementById("name").value.trim();
-    const roll = document.getElementById("roll").value.trim();
-    if(!name || !roll){alert("❌ Fill all details"); return;}
-    const now = Date.now();
-    const studentRef = db.ref("attendance/"+roll);
+  document.getElementById("name").value="";
+  document.getElementById("roll").value="";
+};
 
-    studentRef.get().then(snapshot=>{
-      const data = snapshot.val();
-      if(!data){
-        studentRef.set({name, roll, entry: now, exit: "", status: "Pending"});
-        alert("✅ Entry Recorded!");
-      } else if(!data.exit){
-        studentRef.update({exit: now, status: "Present"});
-        alert("✅ Exit Recorded, Present!");
-      } else {
-        alert("ℹ Already Submitted");
+// Teacher table load
+if(mode==="teacher"){
+  const tbody = document.querySelector("#attendance-table tbody");
+  const attendanceRef = ref(db,"attendance");
+  onValue(attendanceRef,(snapshot)=>{
+    tbody.innerHTML="";
+    snapshot.forEach(child=>{
+      const s = child.val();
+      const entryBadge = s.entry ? `<span class="entry-badge">✔ ${new Date(s.entry).toLocaleTimeString()}</span>` : `<span class="absent-badge">✖</span>`;
+      const exitBadge = s.exit ? `<span class="exit-badge">✔ ${new Date(s.exit).toLocaleTimeString()}</span>` : `<span class="absent-badge">✖</span>`;
+      const statusBadge = s.status==="Present"?`<span class="tick">✔ Present</span>`:s.status==="Pending"?`<span class="cross">⌛ Pending</span>`:`<span class="cross">✖ Absent</span>`;
+      tbody.innerHTML+=`<tr><td>${s.name}</td><td>${s.roll}</td><td>${entryBadge}</td><td>${exitBadge}</td><td>${statusBadge}</td></tr>`;
+    });
+  });
+
+  // Auto absent after 1 hour
+  setInterval(async ()=>{
+    const snap = await get(attendanceRef);
+    snap.forEach(child=>{
+      const s = child.val();
+      if(s.status==="Pending" && Date.now()-s.entry>3600000){
+        update(ref(db,"attendance/"+s.roll),{status:"Absent"});
       }
     });
+  },60000);
+}
 
-    document.getElementById("name").value="";
-    document.getElementById("roll").value="";
+// Clear records
+window.clearRecords = function(){
+  if(confirm("⚠ Clear all records?")){
+    remove(ref(db,"attendance"));
   }
-
-  // Load teacher table
-  if(mode==="teacher"){
-    const tbody = document.querySelector("#attendance-table tbody");
-    const attendanceRef = db.ref("attendance");
-    attendanceRef.on("value", snapshot=>{
-      tbody.innerHTML="";
-      snapshot.forEach(child=>{
-        const s = child.val();
-        const entryBadge = s.entry ? `<span class="entry-badge">✔ ${new Date(s.entry).toLocaleTimeString()}</span>` : `<span class="absent-badge">✖</span>`;
-        const exitBadge = s.exit ? `<span class="exit-badge">✔ ${new Date(s.exit).toLocaleTimeString()}</span>` : `<span class="absent-badge">✖</span>`;
-        const statusBadge = s.status==="Present" ? `<span class="tick">✔ Present</span>` : s.status==="Pending" ? `<span class="cross">⌛ Pending</span>` : `<span class="cross">✖ Absent</span>`;
-        tbody.innerHTML += `<tr>
-          <td>${s.name}</td>
-          <td>${s.roll}</td>
-          <td>${entryBadge}</td>
-          <td>${exitBadge}</td>
-          <td>${statusBadge}</td>
-        </tr>`;
-      });
-    });
-
-    // Auto absent after 1 hour
-    setInterval(()=>{
-      attendanceRef.get().then(snapshot=>{
-        snapshot.forEach(child=>{
-          const s = child.val();
-          if(s.status==="Pending" && Date.now()-s.entry>3600000){
-            db.ref("attendance/"+s.roll).update({status:"Absent"});
-          }
-        });
-      });
-    },60000);
-  }
-
-  // Clear
-  function clearRecords(){
-    if(confirm("⚠ Clear all records?")){
-      db.ref("attendance").remove();
-    }
-  }
+};
 </script>
 
 </body>
