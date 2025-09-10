@@ -9,7 +9,6 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
   import { getDatabase, ref, set, get, update, onValue, remove } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
 
-  // Firebase Config
   const firebaseConfig = {
     apiKey: "AIzaSyCI37gCUH4LvAH33bBly2bqA32Y0_0uaXE",
     authDomain: "smart-7c964.firebaseapp.com",
@@ -23,21 +22,19 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
 
-  window.firebaseDB = db; // Make global for HTML buttons
-  window.firebaseRefs = {ref, set, get, update, onValue, remove};
+  window.db = db; 
+  window.fns = { ref, set, get, update, onValue, remove };
 </script>
 
 <style>
-body {font-family:"Segoe UI", sans-serif; background:linear-gradient(135deg,#eef2f7,#dfe9f3); margin:0; padding:20px; text-align:center; color:#333;}
-h1{margin-bottom:10px;color:#222;}
-h2{margin-bottom:15px;color:#111;}
+body {font-family:"Segoe UI",sans-serif; background:linear-gradient(135deg,#eef2f7,#dfe9f3); margin:0; padding:20px; text-align:center;}
+h1,h2{margin-bottom:10px;color:#222;}
 .card{background:white;border-radius:14px;padding:25px;box-shadow:0 6px 20px rgba(0,0,0,0.1);margin:25px auto;width:90%;max-width:1000px;}
 .qr-container{display:flex;justify-content:center;align-items:center;gap:25px;margin:25px auto;}
 #qrcode{padding:15px;background:white;border-radius:12px;box-shadow:0 0 15px rgba(0,0,0,0.15);}
 button{padding:12px 20px;background:#2563eb;color:white;font-size:15px;border:none;border-radius:8px;cursor:pointer;transition:0.3s;}
 button:hover{background:#1d4ed8;}
-button.clear-btn{background:#e11d48;}
-button.clear-btn:hover{background:#b91c1c;}
+button.clear-btn{background:#e11d48;} button.clear-btn:hover{background:#b91c1c;}
 table{width:100%;border-collapse:collapse;background:white;border-radius:10px;overflow:hidden;margin-top:20px;}
 th,td{padding:14px;text-align:center;border-bottom:1px solid #eee;}
 th{background:#2563eb;color:white;}
@@ -47,7 +44,7 @@ tr:hover td{background:#f9faff;}
 .entry-badge{color:white;background:#16a34a;padding:5px 10px;border-radius:8px;font-weight:bold;}
 .exit-badge{color:white;background:#10b981;padding:5px 10px;border-radius:8px;font-weight:bold;}
 .absent-badge{color:white;background:#ef4444;padding:5px 10px;border-radius:8px;font-weight:bold;}
-.form-container{margin-top:30px;background:white;padding:25px;border-radius:12px;width:350px;margin-left:auto;margin-right:auto;box-shadow:0 4px 15px rgba(0,0,0,0.1);}
+.form-container{margin-top:30px;background:white;padding:25px;border-radius:12px;width:350px;margin:auto;box-shadow:0 4px 15px rgba(0,0,0,0.1);}
 input{width:90%;padding:12px;margin:12px 0;border:1px solid #ccc;border-radius:6px;font-size:14px;}
 @media screen and (max-width:500px){.qr-container{flex-direction:column;gap:15px;}.form-container{width:90%;}}
 </style>
@@ -68,11 +65,7 @@ input{width:90%;padding:12px;margin:12px 0;border:1px solid #ccc;border-radius:6
 <table id="attendance-table">
 <thead>
 <tr>
-<th>Name</th>
-<th>Roll No</th>
-<th>Entry</th>
-<th>Exit</th>
-<th>Status</th>
+<th>Name</th><th>Roll No</th><th>Entry</th><th>Exit</th><th>Status</th>
 </tr>
 </thead>
 <tbody></tbody>
@@ -87,33 +80,30 @@ input{width:90%;padding:12px;margin:12px 0;border:1px solid #ccc;border-radius:6
 </div>
 
 <script type="module">
-import {firebaseDB as db, firebaseRefs as f} from window;
-
-const {ref,set,get,update,onValue,remove} = f;
-
-// Detect mode
+import {db, fns} from window;
+const { ref, set, get, update, onValue, remove } = fns;
 const params = new URLSearchParams(window.location.search);
 const mode = params.get("mode");
 if(mode==="student") document.getElementById("student-view").style.display="block";
 if(mode==="teacher") document.getElementById("teacher-view").style.display="block";
 
-// QR Code
+// QR
 const studentLink = window.location.origin + window.location.pathname + "?mode=student";
 function generateQR(){
   document.getElementById("qrcode").innerHTML="";
-  new QRCode(document.getElementById("qrcode"), { text: studentLink, width:200, height:200 });
+  new QRCode(document.getElementById("qrcode"), {text:studentLink, width:200, height:200});
 }
 if(mode==="teacher") generateQR();
 
-// Attendance
+// Attendance functions
 window.markAttendance = async function(){
   const name = document.getElementById("name").value.trim();
   const roll = document.getElementById("roll").value.trim();
   if(!name || !roll){alert("❌ Fill all details"); return;}
   const studentRef = ref(db,"attendance/"+roll);
   const now = Date.now();
-
   const snap = await get(studentRef);
+
   if(!snap.exists()){
     await set(studentRef,{name, roll, entry: now, exit: "", status:"Pending"});
     alert("✅ Entry Recorded");
@@ -123,12 +113,11 @@ window.markAttendance = async function(){
   } else {
     alert("ℹ Already Submitted");
   }
-
   document.getElementById("name").value="";
   document.getElementById("roll").value="";
 };
 
-// Teacher table load
+// Teacher table
 if(mode==="teacher"){
   const tbody = document.querySelector("#attendance-table tbody");
   const attendanceRef = ref(db,"attendance");
@@ -155,7 +144,7 @@ if(mode==="teacher"){
   },60000);
 }
 
-// Clear records
+// Clear
 window.clearRecords = function(){
   if(confirm("⚠ Clear all records?")){
     remove(ref(db,"attendance"));
