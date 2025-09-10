@@ -2,38 +2,123 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Smart Attendance System</title>
+<title>📌 Smart Attendance System</title>
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+
 <style>
-body {font-family:"Segoe UI",sans-serif;background:linear-gradient(135deg,#eef2f7,#dfe9f3);margin:0;padding:20px;color:#333;}
-h1,h2{text-align:center;}
-.card{background:white;border-radius:14px;padding:25px;box-shadow:0 6px 20px rgba(0,0,0,0.1);margin:20px auto;max-width:1000px;}
-.qr-container{display:flex;justify-content:center;align-items:center;gap:25px;margin-bottom:20px;}
-#qrcode{padding:15px;background:white;border-radius:12px;box-shadow:0 0 15px rgba(0,0,0,0.15);}
-button{padding:10px 20px;background:#2563eb;color:white;border:none;border-radius:8px;cursor:pointer;transition:0.3s;}
-button:hover{background:#1d4ed8;}
-button.clear-btn{background:#e11d48;} button.clear-btn:hover{background:#b91c1c;}
-table{width:100%;border-collapse:collapse;background:white;border-radius:10px;overflow:hidden;margin-top:20px;table-layout:fixed;}
-th,td{padding:12px;text-align:center;border-bottom:1px solid #eee;word-wrap:break-word;}
-th{background:#2563eb;color:white;}
-tr:hover td{background:#f9faff;}
-.tick{color:green;font-weight:bold;} .cross{color:red;font-weight:bold;} .pending{color:orange;font-weight:bold;}
-.entry-badge{color:white;background:#16a34a;padding:5px 10px;border-radius:8px;font-weight:bold;}
-.exit-badge{color:white;background:#10b981;padding:5px 10px;border-radius:8px;font-weight:bold;}
-.form-container{margin:30px auto;background:white;padding:25px;border-radius:12px;width:350px;box-shadow:0 4px 15px rgba(0,0,0,0.1);}
-input{width:90%;padding:12px;margin:12px 0;border:1px solid #ccc;border-radius:6px;font-size:14px;}
-@media screen and (max-width:600px){.qr-container{flex-direction:column;gap:15px;}.form-container{width:90%;}}
-.table-wrapper{max-height:500px;overflow-y:auto;}
+/* 🔥 Background Animation */
+body {
+    font-family:"Poppins", sans-serif;
+    background: linear-gradient(-45deg, #ff9a9e, #fad0c4, #a1c4fd, #c2e9fb);
+    background-size: 400% 400%;
+    animation: gradient 15s ease infinite;
+    margin:0;
+    padding:20px;
+    color:#222;
+}
+@keyframes gradient {
+  0%{background-position:0% 50%;}
+  50%{background-position:100% 50%;}
+  100%{background-position:0% 50%;}
+}
+h1,h2{
+    text-align:center;
+    margin:10px 0;
+    font-weight:600;
+    color:#1f2937;
+}
+
+/* 🔥 Glass Card */
+.card{
+    background:rgba(255,255,255,0.85);
+    border-radius:20px;
+    padding:25px;
+    box-shadow:0 8px 32px rgba(0,0,0,0.15);
+    backdrop-filter:blur(12px);
+    margin:20px auto;
+    max-width:1000px;
+    transition:0.3s;
+}
+.card:hover{box-shadow:0 12px 40px rgba(0,0,0,0.2);}
+
+/* QR */
+.qr-container{display:flex;justify-content:center;align-items:center;gap:25px;margin-bottom:25px;}
+#qrcode{padding:18px;background:white;border-radius:18px;box-shadow:0 0 20px rgba(0,0,0,0.25);}
+
+/* 🔥 Buttons */
+button{
+    padding:12px 22px;
+    background:linear-gradient(90deg,#6366f1,#8b5cf6);
+    color:white;
+    border:none;
+    border-radius:12px;
+    cursor:pointer;
+    font-weight:bold;
+    font-size:15px;
+    transition:0.3s;
+}
+button:hover{background:linear-gradient(90deg,#4f46e5,#4338ca);}
+button.clear-btn{background:linear-gradient(90deg,#ef4444,#dc2626);}
+button.clear-btn:hover{background:linear-gradient(90deg,#b91c1c,#7f1d1d);}
+
+/* 🔥 Table */
+.table-wrapper{max-height:550px;overflow-y:auto;}
+table{
+    width:100%;
+    border-collapse:collapse;
+    background:rgba(255,255,255,0.9);
+    border-radius:14px;
+    overflow:hidden;
+    margin-top:20px;
+}
+th,td{padding:14px;text-align:center;border-bottom:1px solid #eee;word-wrap:break-word;font-size:14px;font-family:"Roboto";}
+th{background:linear-gradient(90deg,#6366f1,#8b5cf6);color:white;}
+tr:hover td{background:#f3f4f6;}
+
+/* 🔥 Badges */
+.entry-badge{color:white;background:#10b981;padding:6px 12px;border-radius:12px;font-weight:bold;display:inline-block;}
+.exit-badge{color:white;background:#0ea5e9;padding:6px 12px;border-radius:12px;font-weight:bold;display:inline-block;}
+.absent-badge{color:white;background:#ef4444;padding:6px 12px;border-radius:12px;font-weight:bold;display:inline-block;}
+.tick{color:green;font-weight:bold;font-size:15px;}
+.cross{color:red;font-weight:bold;font-size:15px;}
+.pending{color:orange;font-weight:bold;font-size:15px;}
+
+/* 🔥 Student Form */
+.form-container{
+    margin:30px auto;
+    background:rgba(255,255,255,0.9);
+    padding:30px;
+    border-radius:20px;
+    width:360px;
+    box-shadow:0 6px 20px rgba(0,0,0,0.2);
+}
+input{
+    width:92%;
+    padding:12px;
+    margin:12px 0;
+    border:1px solid #ccc;
+    border-radius:8px;
+    font-size:15px;
+    font-family:"Roboto";
+}
+@media screen and (max-width:600px){
+    .qr-container{flex-direction:column;gap:20px;}
+    .form-container{width:90%;}
+}
 </style>
 </head>
 <body>
 
 <h1>📌 Smart Attendance System</h1>
 
+<!-- Teacher Dashboard -->
 <div id="teacher-view" class="card">
-<h2>Teacher Dashboard</h2>
+<h2>👨‍🏫 Teacher Dashboard</h2>
 <div class="qr-container">
 <div id="qrcode"></div>
 <div>
@@ -45,11 +130,11 @@ input{width:90%;padding:12px;margin:12px 0;border:1px solid #ccc;border-radius:6
 <table id="attendance-table">
 <thead>
 <tr>
-<th>Name</th>
-<th>Roll No</th>
-<th>Entry</th>
-<th>Exit</th>
-<th>Attendance</th>
+<th>👤 Name</th>
+<th>🎫 Roll No</th>
+<th>🟢 Entry</th>
+<th>🔴 Exit</th>
+<th>📊 Attendance</th>
 </tr>
 </thead>
 <tbody></tbody>
@@ -57,11 +142,12 @@ input{width:90%;padding:12px;margin:12px 0;border:1px solid #ccc;border-radius:6
 </div>
 </div>
 
+<!-- Student Form -->
 <div id="student-view" class="form-container" style="display:none;">
-<h2>Attendance Form</h2>
-<input type="text" id="name" placeholder="Enter Name"><br>
+<h2>📝 Attendance Form</h2>
+<input type="text" id="name" placeholder="Enter Name" autofocus><br>
 <input type="text" id="roll" placeholder="Enter Roll No"><br>
-<button onclick="markAttendance()">Submit</button>
+<button onclick="markAttendance()">✅ Submit</button>
 </div>
 
 <script>
@@ -79,10 +165,10 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 // ===== QR Code =====
-const studentLink = "https://mouryaumesh052005-bit.github.io/smart-attendence/?mode=student";
+const studentLink = window.location.origin + window.location.pathname + "?mode=student";
 function generateQR(){
   document.getElementById("qrcode").innerHTML="";
-  new QRCode(document.getElementById("qrcode"),{text:studentLink,width:200,height:200});
+  new QRCode(document.getElementById("qrcode"),{text:studentLink,width:220,height:220});
 }
 generateQR();
 
@@ -91,27 +177,28 @@ const params = new URLSearchParams(window.location.search);
 if(params.get("mode")==="student"){
   document.getElementById("teacher-view").style.display="none";
   document.getElementById("student-view").style.display="block";
+  document.getElementById("name").focus(); // auto focus on name field
 }
 
-// ===== Load Attendance Table =====
+// ===== Load Attendance Table (Realtime) =====
 function loadAttendance(){
   if(params.get("mode")==="student") return;
-  db.ref("attendance").once("value", snapshot=>{
+  db.ref("attendance").on("value", snapshot=>{
     const data = snapshot.val() || {};
     const tbody = document.querySelector("#attendance-table tbody");
     tbody.innerHTML = "";
     const now = Date.now();
     Object.values(data).forEach(s=>{
-      if(!s.exit && s.entryTime && now - s.entryTime > 3600000){
+      if(!s.exit && s.entryTime && now - s.entryTime > 3000000){ // 50 mins
         s.status="Absent";
         db.ref("attendance/"+s.roll).update({status:"Absent"});
       }
       const entryBadge = s.entry ? `<span class="entry-badge">✔ ${s.entry}</span>` : `<span class="absent-badge">✖</span>`;
       const exitBadge = s.exit ? `<span class="exit-badge">✔ ${s.exit}</span>` : `<span class="absent-badge">✖</span>`;
-      const statusHTML = s.status==="Present"?`<span class="tick">✔ Present</span>`:s.status==="Absent"?`<span class="cross">✖ Absent</span>`:`<span class="pending">⏳ Pending</span>`;
+      const statusHTML = s.status==="Present"?`<span class="tick">✔ Present</span>`:s.status==="Absent"?`<span class="cross">❌ Absent</span>`:`<span class="pending">⏳ Pending</span>`;
       tbody.innerHTML += `<tr>
-        <td>${s.name}</td>
-        <td>${s.roll}</td>
+        <td>👤 ${s.name}</td>
+        <td>🎫 ${s.roll}</td>
         <td>${entryBadge}</td>
         <td>${exitBadge}</td>
         <td>${statusHTML}</td>
@@ -120,7 +207,6 @@ function loadAttendance(){
   });
 }
 loadAttendance();
-if(!params.get("mode")) setInterval(loadAttendance,2000);
 
 // ===== Mark Attendance =====
 function markAttendance(){
@@ -135,20 +221,18 @@ function markAttendance(){
     const data = snapshot.val();
     let message = "";
     if(!data){
-      // First time → entry pending
       studentRef.set({name, roll, entry:time, entryTime:timestamp, exit:"", status:"Pending"});
-      message = "✅ Entry Recorded, Attendance Pending";
+      message = "✅ Entry Recorded, Attendance Pending ⏳";
     } else if(!data.exit){
-      // Second time → exit + present
       studentRef.update({exit:time, status:"Present"});
-      message = "✅ Exit Recorded, Attendance Present";
+      message = "✅ Exit Recorded, Attendance Present ✔";
     } else {
       message = "ℹ Already Submitted";
     }
     alert(message);
     document.getElementById("name").value="";
     document.getElementById("roll").value="";
-    loadAttendance();
+    document.getElementById("name").focus();
   });
 }
 
@@ -156,7 +240,6 @@ function markAttendance(){
 function clearRecords(){
   if(confirm("⚠ Clear all records?")){
     db.ref("attendance").remove();
-    loadAttendance();
   }
 }
 </script>
