@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pro Portfolio</title>
+<!-- Font Awesome CDN for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    background: #f0f4f8;
+  }
+
+  /* Header */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #333;
+    color: #fff;
+    padding: 15px 30px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  }
+
+  header h1 {
+    margin: 0;
+    font-size: 24px;
+  }
+
+  .home-icon {
+    font-size: 28px;
+    color: #ffcc00;
+    cursor: pointer;
+    margin-right: 15px;
+    transition: transform 0.3s;
+  }
+
+  .home-icon:hover {
+    transform: scale(1.2);
+  }
+
+  nav a {
+    color: #fff;
+    text-decoration: none;
+    margin: 0 15px;
+    font-size: 18px;
+    transition: all 0.3s;
+  }
+
+  nav a:hover {
+    font-weight: bold;
+    text-decoration: underline;
+    color: #ffcc00;
+  }
+
+  section {
+    max-width: 900px;
+    margin: 50px auto;
+    padding: 40px 50px;
+    border-radius: 20px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    background: #fff;
+  }
+
+  /* About Me */
+  #about {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    background: linear-gradient(135deg, #ffecd2, #fcb69f);
+  }
+
+  #about img {
+    width: 180px;
+    border-radius: 50%;
+    border: 5px solid #fff;
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+
+  #about img:hover {
+    transform: scale(1.1);
+    box-shadow: 0 8px 15px rgba(0,0,0,0.3);
+  }
+
+  #about .about-text h2 {
+    margin: 0 0 15px 0;
+    font-size: 28px;
+    color: #333;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+  }
+
+  #about .about-text p {
+    font-size: 17px;
+    line-height: 1.6;
+    color: #444;
+  }
+
+  /* Skills */
+  #skills {
+    background: linear-gradient(135deg, #e0f7fa, #b2ebf2);
+    text-align: center;
+  }
+
+  #skills h2 {
+    margin-bottom: 30px;
+    font-size: 28px;
+  }
+
+  .skills-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 25px;
+  }
+
+  .skill-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #fff;
+    padding: 15px 20px;
+    border-radius: 15px;
+    width: 130px;
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+
+  .skill-item img {
+    width: 60px;
+    margin-bottom: 10px;
+  }
+
+  .skill-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+  }
+
+  .skill-item p {
+    margin: 0;
+    font-weight: bold;
+    color: #333;
+  }
+
+  /* Projects */
+  #projects h2 {
+    margin-bottom: 25px;
+    font-size: 28px;
+    text-align: center;
+  }
+
+  .projects {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .project-item {
+    padding: 15px;
+    border-left: 5px solid #333;
+    border-radius: 8px;
+    background: #f9f9f9;
+    transition: transform 0.3s;
+  }
+
+  .project-item:hover {
+    transform: translateX(5px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+  }
+
+  /* Recommendations */
+  #recommendations {
+    background: linear-gradient(135deg, #ffe0b2, #ffcc80);
+  }
+
+  #recommendations h2 {
+    text-align: center;
+    margin-bottom: 25px;
+    font-size: 28px;
+  }
+
+  .recommendation-item {
+    background: #fff;
+    padding: 15px 20px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    font-size: 16px;
+    color: #333;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+
+  .recommendation-item:hover {
+    transform: translateY(-2px);
+  }
+
+  input, textarea {
+    width: 100%;
+    padding: 10px;
+    margin-top: 8px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+  }
+
+  button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    background: #333;
+    color: #fff;
+    cursor: pointer;
+    font-size: 16px;
+    transition: 0.3s;
+  }
+
+  button:hover {
+    background: #ffcc00;
+    color: #333;
+  }
+
+  @media (max-width: 768px) {
+    #about {
+      flex-direction: column;
+      text-align: center;
+    }
+
+    #about img {
+      margin-bottom: 20px;
+    }
+
+    .skills-container {
+      flex-direction: column;
+      align-items: center;
+    }
+  }
+
+</style>
+</head>
+<body>
+
+<!-- Header with Home Icon and Navigation -->
+<header>
+  <div style="display:flex; align-items:center;">
+    <i class="fas fa-home home-icon"></i>
+    <h1>Umesh Mourya</h1>
+  </div>
+  <nav>
+    <a href="#about">About</a>
+    <a href="#projects">Project Details</a>
+    <a href="#skills">Skills</a>
+    <a href="#recommendations">Recommendations</a>
+  </nav>
+</header>
+
+<!-- About Me Section -->
+<section id="about">
+  <img src="/Photo.jpg" alt="Profile Image">
+  <div class="about-text">
+    <h2>Umesh Mourya</h2>
+    <p>Hello! I am Umesh, a passionate web developer with experience in building interactive and responsive websites. I enjoy learning new technologies and creating projects that solve real-world problems. My goal is to craft web experiences that are both functional and visually appealing.</p>
+  </div>
+</section>
+
+<!-- Skills Section -->
+<section id="skills">
+  <h2>My Skills</h2>
+  <div class="skills-container">
+    <div class="skill-item">
+      <img src="https://cdn-icons-png.flaticon.com/512/732/732212.png" alt="HTML">
+      <p>HTML</p>
+    </div>
+    <div class="skill-item">
+      <img src="https://cdn-icons-png.flaticon.com/512/732/732190.png" alt="CSS">
+      <p>CSS</p>
+    </div>
+    <div class="skill-item">
+      <img src="https://cdn-icons-png.flaticon.com/512/919/919828.png" alt="JavaScript">
+      <p>JavaScript</p>
+    </div>
+    <div class="skill-item">
+      <img src="https://cdn-icons-png.flaticon.com/512/5968/5968672.png" alt="React">
+      <p>React</p>
+    </div>
+    <div class="skill-item">
+      <img src="https://cdn-icons-png.flaticon.com/512/226/226777.png" alt="Python">
+      <p>Python</p>
+    </div>
+  </div>
+</section>
+
+<!-- Projects Section -->
+<section id="projects">
+  <h2>My Projects</h2>
+  <div class="projects">
+    <div class="project-item">Portfolio Website – A responsive portfolio showcasing my work.</div>
+    <div class="project-item">Todo App – Interactive task management web app with local storage.</div>
+    <div class="project-item">Weather App – Displays real-time weather using API integration.</div>
+  </div>
+</section>
+
+<!-- Recommendations Section -->
+<section id="recommendations">
+  <h2>Recommendations</h2>
+  <div id="recommendation-list">
+    <div class="recommendation-item">Jane Smith: John is an excellent developer!</div>
+    <div class="recommendation-item">Mike Lee: Very creative and hardworking.</div>
+    <div class="recommendation-item">Sarah Khan: Highly recommended for web projects.</div>
+  </div>
+
+  <h3>Add a Recommendation</h3>
+  <input type="text" id="recName" placeholder="Your Name">
+  <textarea id="recText" placeholder="Your Recommendation"></textarea>
+  <button onclick="addRecommendation()">Submit</button>
+</section>
+
+<script>
+function addRecommendation() {
+  const name = document.getElementById('recName').value.trim();
+  const text = document.getElementById('recText').value.trim();
+
+  if(name && text) {
+    const list = document.getElementById('recommendation-list');
+    const newRec = document.createElement('div');
+    newRec.className = 'recommendation-item';
+    newRec.textContent = `${name}: ${text}`;
+    list.appendChild(newRec);
+
+    alert('Thanks,Recommendation submitted successfully!');
+
+    document.getElementById('recName').value = '';
+    document.getElementById('recText').value = '';
+  } else {
+    alert('Please fill in both fields.');
+  }
+}
+</script>
+
+</body>
+</html>
